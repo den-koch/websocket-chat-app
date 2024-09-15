@@ -12,8 +12,8 @@ var stompClient = null;
 var username = null;
 
 var colors = [
-    '#2196F3', '#32c787', '#00BCD4', '#ff5652',
-    '#ffc107', '#ff85af', '#FF9800', '#39bbb0'
+    "#2196F3", "#32c787", "#00BCD4", "#ff5652",
+    "#ffc107", "#ff85af", "#FF9800", "#39bbb0"
 ];
 
 function connect(event) {
@@ -22,12 +22,11 @@ function connect(event) {
         usernamePage.classList.add("hidden");
         chatPage.classList.remove("hidden");
 
-        var socket = new SocketJS("/ws");
+        var socket = new SockJS("/ws");
         stompClient = Stomp.over(socket);
 
         stompClient.connect({}, onConnected, onError);
     }
-
     event.preventDefault();
 }
 
@@ -45,9 +44,9 @@ function onConnected() {
     connectingElement.classList.add("hidden");
 }
 
-function onError() {
+function onError(error) {
     connectingElement.textContent =
-        "Could not connect to WebSocket server. Please refresh this page and try again!";
+        "Could not connect to WebSocket server. Please refresh this page to try again!";
     connectingElement.style.color = "red";
 }
 
@@ -63,7 +62,7 @@ function onMessageReceived(payload) {
         messageElement.classList.add("event-message");
         message.content = message.sender + " left!";
     } else {
-        messageElement.classList.add("event-message");
+        messageElement.classList.add("chat-message");
 
         var avatarElement = document.createElement("i");
         var avatarText = document.createTextNode(message.sender[0]);
@@ -98,29 +97,21 @@ function getAvatarColor(messageSender) {
     }
     var index = Math.abs(hash % colors.length);
     return colors[index];
-
 }
 
 function sendMessage(event) {
-
     var messageContent = messageInput.value.trim();
-
     if (messageContent && stompClient) {
         var chatMessage = {
             sender: username,
             content: messageInput.value,
             type: "CHAT"
         };
-        stompClient.send("/app/chat.sendMessage",
-            {},
-            JSON.stringify(chatMessage));
-
+        stompClient.send("/app/chat.sendMessage", {}, JSON.stringify(chatMessage));
         messageInput.value = "";
     }
-
     event.preventDefault();
 }
 
 usernameForm.addEventListener("submit", connect, true)
 messageForm.addEventListener("submit", sendMessage, true)
-
